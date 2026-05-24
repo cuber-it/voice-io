@@ -1,0 +1,48 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+*.egg
+
+# Audio & Sessions
+sessions/
+*.flac
+*.wav
+*.opus
+*.ogg
+*.mp3
+
+# Whisper models
+models/
+
+# Config with secrets
+config.toml
+.env
+*.secret
+
+# Logs
+*.log
+logs/
+
+# Docker runtime
+docker/data/
+docker/logs/
+docker/.env
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Internal
+CLAUDE.md
+.claude/
+RELEASE-CHECKLIST.md

@@ -1,0 +1,27 @@
+services:
+  voice-io:
+    build: .
+    container_name: voice-io
+    restart: unless-stopped
+    ports:
+      - "12120:8000"
+    volumes:
+      - ./config:/config:ro
+      - voice-io-sessions:/data/sessions
+      - voice-io-models:/data/models
+      - voice-io-inbox:/data/inbox
+      - voice-io-glossaries:/data/glossaries
+      - voice-io-macros:/data/macros
+      - voice-io-prompts:/data/prompts
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio
+
+volumes:
+  voice-io-sessions:
+  voice-io-models:
+  voice-io-inbox:
+  voice-io-glossaries:
+  voice-io-macros:
+  voice-io-prompts:

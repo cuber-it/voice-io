@@ -1,0 +1,46 @@
+# voice-io configuration
+
+[general]
+# Where transcripts (.md) and audio (.wav) are stored
+vault_dir = "~/Vault/voice-io"
+
+[wakeword]
+# Enable wake-word detection. Disabled by default — use the GUI start button.
+# Enable only if you want hands-free start without opening the web interface.
+enabled = false
+# Wake-word to start recording (openwakeword built-in)
+word = "hey jarvis"
+# Detection sensitivity (0.0 - 1.0). 0.5 is very loose, 0.7 is safer.
+threshold = 0.7
+# Phrase in spoken text that ends the recording (detected by Whisper)
+stop_phrase = "over and out"
+
+[recording]
+# Whisper works natively at 16 kHz, more is pointless for speech
+sample_rate = 16000
+channels = 1
+# Optional: partial device name match, e.g. "TONOR"
+# Empty = system default. List devices: voice-io devices
+# device = "TONOR"
+# Seconds of silence before auto-pause (not stop)
+silence_timeout = 30
+# Audio peak below this = silence (0.0 - 1.0)
+silence_threshold = 0.01
+
+[transcription]
+# Model choices:
+#   distil-large-v3    fast enough for realtime on CPU, good quality
+#   large-v3           best quality, too slow for realtime on CPU
+#   large-v3-turbo     compromise
+#   medium             for testing
+model = "distil-large-v3"
+device = "cpu"
+compute_type = "int8"
+language = "de"
+# Chunk length in seconds for streaming transcription
+chunk_duration = 4
+beam_size = 5
+
+[daemon]
+log_file = "voice-io.log"
+pid_file = "/tmp/voice-io.pid"

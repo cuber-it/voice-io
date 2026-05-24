@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>voice-io</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="black">
+    <div class="app">
+        <aside class="panel panel-left active-panel" id="panel-left">
+            <div class="left-settings" id="current-settings"></div>
+            <div class="upload-bar">
+                <input type="file" id="upload-file" accept="audio/*" style="display:none">
+                <button id="btn-upload" class="upload-btn" title="Import audio file">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                    Import
+                </button>
+                <select id="upload-lang" class="lang-select-small">
+                    <option value="de">DE</option><option value="en">EN</option><option value="fr">FR</option>
+                    <option value="es">ES</option><option value="it">IT</option><option value="pt">PT</option>
+                    <option value="nl">NL</option><option value="pl">PL</option><option value="ja">JA</option><option value="zh">ZH</option>
+                </select>
+            </div>
+            <div id="sessions-list" class="sessions-list"></div>
+            <div class="left-footer">
+                <button id="btn-wakeword" class="icon-btn wakeword-toggle" title="Wake-word OFF — click to enable">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                </button>
+                <button id="btn-config" class="icon-btn" title="Settings"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/></svg></button>
+                <button id="btn-prompt-edit" class="icon-btn" title="Edit Prompt Profiles"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg></button>
+                <button id="btn-tty" class="icon-btn" title="Terminal Mode"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v12zm-2-1h-6v-2h6v2zM7.5 17l-1.41-1.41L8.67 13l-2.59-2.59L7.5 9l4 4-4 4z"/></svg></button>
+                <div class="theme-switcher">
+                    <button class="theme-btn active" data-theme="black" title="Dark"></button>
+                    <button class="theme-btn" data-theme="sepia" title="Sepia"></button>
+                    <button class="theme-btn" data-theme="white" title="Light"></button>
+                </div>
+            </div>
+        </aside>
+        <div class="resize-handle" id="resize-left"></div>
+        <main class="panel panel-center active-panel" id="panel-center">
+            <div class="live-transcript transcript-text" id="live-transcript">
+                <p class="placeholder">Waiting for recording...</p>
+            </div>
+            <div class="recorder">
+                <div class="vu-meter"><canvas id="vu-canvas" width="600" height="60"></canvas></div>
+                <div class="recorder-bar">
+                    <div class="recorder-left">
+                        <select id="lang-select" class="rec-select" title="Language">
+                            <option value="de">DE</option>
+                            <option value="en">EN</option>
+                            <option value="fr">FR</option>
+                            <option value="es">ES</option>
+                            <option value="it">IT</option>
+                            <option value="pt">PT</option>
+                            <option value="nl">NL</option>
+                            <option value="pl">PL</option>
+                            <option value="ja">JA</option>
+                            <option value="zh">ZH</option>
+                        </select>
+                        <select id="glossary-select" class="rec-select" title="Glossary">
+                            <option value="">Glossar</option>
+                        </select>
+                        <select id="macro-select" class="rec-select" title="Macros">
+                            <option value="">Makros</option>
+                        </select>
+                        <select id="prompt-active" class="rec-select" title="Prompt">
+                            <option value="">Prompt</option>
+                        </select>
+                    </div>
+                    <div class="recorder-mid" id="recorder-mid">
+                        <button id="btn-record" class="transport-btn record" title="Record"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></button>
+                        <button id="btn-pause" class="transport-btn pause" title="Pause" disabled><svg viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg></button>
+                        <button id="btn-stop" class="transport-btn stop" title="Stop" disabled><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg></button>
+                    </div>
+                    <div class="recorder-right">
+                        <span id="timer">00:00</span>
+                        <span id="status-badge" class="badge idle">IDLE</span>
+                    </div>
+                </div>
+                <span id="session-id" style="display:none"></span>
+                <span id="model-name" style="display:none"></span>
+                <button id="btn-macro-edit" style="display:none"></button>
+                <button id="btn-glossary-edit" style="display:none"></button>
+            </div>
+        </main>
+        <div class="resize-handle" id="resize-right"></div>
+        <aside class="panel panel-right active-panel" id="panel-right">
+            <!-- hidden elements for JS compatibility -->
+            <h2 id="detail-title" style="display:none"></h2>
+            <div id="transcript-tabs" style="display:none"></div>
+            <!-- visible content -->
+            <div id="cheat-sheet" class="cheat-sheet" style="display:none"></div>
+            <div id="player-bar" class="player-bar" style="display:none">
+                <button id="player-play" class="player-btn" title="Play/Pause">
+                    <svg id="play-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+                    <svg id="pause-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:none"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>
+                </button>
+                <input id="player-seek" type="range" min="0" max="100" value="0" class="player-seek">
+                <span id="player-time" class="player-time">0:00</span>
+                <input id="player-volume" type="range" min="0" max="100" value="80" class="player-volume" title="Volume">
+                <audio id="audio-el" preload="metadata"></audio>
+            </div>
+            <div id="detail-content" class="right-content transcript-text">
+                <p class="placeholder">Select a session on the left</p>
+            </div>
+            <div class="right-resources">
+                <div class="right-res-col">
+                    <label class="right-res-label">Glossar</label>
+                    <select id="right-glossary" class="right-res-list" size="4"></select>
+                </div>
+                <div class="right-res-col">
+                    <label class="right-res-label">Makros</label>
+                    <select id="right-macros" class="right-res-list" size="4"></select>
+                </div>
+                <div class="right-res-col">
+                    <label class="right-res-label">Prompt</label>
+                    <select id="right-prompts" class="right-res-list" size="4"></select>
+                </div>
+            </div>
+            <div id="detail-footer" class="detail-footer" style="display:none">
+                <div class="footer-session"><span id="detail-session-id"></span></div>
+            </div>
+        </aside>
+    </div>
+    <dialog id="config-dialog" class="config-dialog">
+        <div class="dialog-header"><h3>Settings</h3><button class="dialog-close" onclick="document.getElementById('config-dialog').close()">&times;</button></div>
+        <div class="config-grid">
+            <label>Wake Word</label><input id="cfg-wakeword" type="text" readonly>
+            <label>Stop Phrase</label><input id="cfg-stop-phrase" type="text">
+            <label>Model</label><select id="cfg-model"><option value="distil-large-v3">distil-large-v3</option><option value="large-v3">large-v3</option><option value="large-v3-turbo">large-v3-turbo</option><option value="medium">medium</option><option value="small">small</option><option value="tiny">tiny</option></select>
+            <label>Language</label><input id="cfg-language" type="text">
+            <label>Chunk Duration</label><input id="cfg-chunk" type="number" min="1" max="30">
+            <label>Silence Timeout</label><input id="cfg-silence-timeout" type="number" min="5" max="300">
+            <label>Silence Threshold</label><input id="cfg-silence-threshold" type="number" min="0" max="1" step="0.005">
+            <label>Sample Rate</label><input id="cfg-sample-rate" type="text" readonly>
+            <label>Device</label><select id="cfg-device"></select>
+            <label>Vault Dir</label><input id="cfg-vault" type="text" readonly>
+        </div>
+        <div class="config-buttons"><button id="cfg-save" class="cfg-save-btn">Save</button><button id="cfg-close" class="cfg-close-btn">Cancel</button></div>
+    </dialog>
+
+
+    <dialog id="macro-dialog" class="wide-dialog">
+        <h3>Dictation Macros</h3>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+            <select id="macro-list" class="lang-select" style="flex:1"></select>
+            <button id="macro-new" class="cfg-save-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">New</button>
+            <button id="macro-del" class="cfg-close-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">Delete</button>
+        </div>
+        <div style="margin-bottom:0.5rem;font-size:0.75rem;color:var(--text-dim)">Format: trigger phrase | replacement text (use \n for newline)</div>
+        <textarea id="macro-editor" style="width:100%;height:300px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:0.5rem;font-family:'Courier New',monospace;font-size:0.85rem;resize:vertical"></textarea>
+        <div class="config-buttons" style="margin-top:0.75rem">
+            <button id="macro-save" class="cfg-save-btn">Save</button>
+            <button id="macro-close" class="cfg-close-btn">Close</button>
+        </div>
+    </dialog>
+
+    <dialog id="glossary-dialog" class="wide-dialog">
+        <h3>Glossaries</h3>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+            <select id="gloss-list" class="lang-select" style="flex:1"></select>
+            <button id="gloss-new" class="cfg-save-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">New</button>
+            <button id="gloss-del" class="cfg-close-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">Delete</button>
+        </div>
+        <div style="margin-bottom:0.5rem;font-size:0.75rem;color:var(--text-dim)">One entry per line: word | description (description optional)</div>
+        <textarea id="gloss-editor" style="width:100%;height:300px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:0.5rem;font-family:'Courier New',monospace;font-size:0.85rem;resize:vertical"></textarea>
+        <div class="config-buttons" style="margin-top:0.75rem">
+            <button id="gloss-save" class="cfg-save-btn">Save</button>
+            <button id="gloss-close" class="cfg-close-btn">Close</button>
+        </div>
+    </dialog>
+
+
+    <dialog id="cleanup-dialog" class="wide-dialog">
+        <h3>Clean up Transcript</h3>
+        <div class="config-grid">
+            <label>Style</label>
+            <select id="cleanup-profiles" multiple class="glossary-select" style="min-height:80px"></select>
+            <label>Provider</label>
+            <select id="cleanup-provider" class="lang-select">
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="openai">OpenAI / Ollama</option>
+            </select>
+            <label>Model</label>
+            <input id="cleanup-model" type="text" value="claude-haiku-4-5-20251001" style="font-family:'Courier New',monospace;font-size:0.8rem;padding:0.3rem;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px">
+        </div>
+        <div class="config-buttons" style="margin-top:0.75rem">
+            <button id="cleanup-go" class="cfg-save-btn">Clean up</button>
+            <button id="cleanup-cancel" class="cfg-close-btn">Cancel</button>
+        </div>
+    </dialog>
+
+    <dialog id="prompt-dialog" class="wide-dialog">
+        <h3>Prompt Profiles</h3>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+            <select id="prompt-list" class="lang-select" style="flex:1"></select>
+            <button id="prompt-new" class="cfg-save-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">New</button>
+            <button id="prompt-del" class="cfg-close-btn" style="padding:0.25rem 0.8rem;font-size:0.75rem">Delete</button>
+        </div>
+        <textarea id="prompt-editor" style="width:100%;height:250px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:0.5rem;font-size:0.85rem;resize:vertical"></textarea>
+        <div class="config-buttons" style="margin-top:0.75rem">
+            <button id="prompt-save" class="cfg-save-btn">Save</button>
+            <button id="prompt-close" class="cfg-close-btn">Close</button>
+        </div>
+    </dialog>
+
+    <dialog id="upload-progress-dialog" class="progress-dialog">
+        <h3>Transcribing import...</h3>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="upload-progress-fill"></div>
+        </div>
+        <p class="progress-text" id="upload-progress-text">0%</p>
+    </dialog>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
