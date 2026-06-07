@@ -48,6 +48,7 @@ class Daemon:
         self._state = State.IDLE
         self._shutdown = threading.Event()
         self._restart_stream = threading.Event()
+        self._capture_wanted = threading.Event()
         self._recorder: Recorder | None = None
         self._transcriber: StreamingTranscriber | None = None
         self._session_id: str | None = None
@@ -61,6 +62,11 @@ class Daemon:
     @property
     def state(self) -> State:
         return self._state
+
+    def _should_capture(self) -> bool:
+        """Mic stream needed? Always in wake-word mode; otherwise only while a
+        session is active (RECORDING/PAUSED) — keeps the mic closed when idle."""
+        return self.config.wakeword.enabled or self._state is not State.IDLE
 
     def run(self) -> None:
         if threading.current_thread() is threading.main_thread():
@@ -93,6 +99,14 @@ class Daemon:
         logger.info("Output dir: %s", vault_dir)
 
         while not self._shutdown.is_set():
+            # Lazy mic: in GUI-only mode (wake-word off) keep the mic CLOSED
+            # while idle and open it only while a session is active. In wake-word
+            # mode the stream must stay open to hear the trigger.
+            if not self._should_capture():
+                self._capture_wanted.wait(timeout=0.5)
+                self._capture_wanted.clear()
+                continue
+
             self._restart_stream.clear()
             device = resolve_device(self.config.recording.device)
             logger.info("Opening audio stream: device=%s", device or "default")
@@ -106,9 +120,11 @@ class Daemon:
                     dtype="int16",
                     callback=self._raw_audio_callback,
                 ):
-                    # wait until shutdown or stream restart requested
-                    while not self._shutdown.is_set() and not self._restart_stream.is_set():
-                        self._shutdown.wait(timeout=0.5)
+                    # keep the stream open while capture is wanted
+                    while (not self._shutdown.is_set()
+                           and not self._restart_stream.is_set()
+                           and self._should_capture()):
+                        self._shutdown.wait(timeout=0.2)
             except Exception as exc:
                 logger.error("Audio stream error: %s", exc)
                 if not self._shutdown.is_set():
@@ -116,6 +132,8 @@ class Daemon:
 
             if self._restart_stream.is_set():
                 logger.info("Restarting audio stream with new device")
+            elif not self._should_capture():
+                logger.info("Audio stream closed (idle, mic released)")
 
         if self._state in (State.RECORDING, State.PAUSED):
             self._stop_session()
@@ -131,6 +149,7 @@ class Daemon:
                 threshold=self.config.wakeword.threshold,
                 on_trigger=self._on_wakeword,
             )
+            self._capture_wanted.set()
             logger.info("Wake-word ENABLED at runtime")
         elif not enabled and self._detector is not None:
             self._detector = None
@@ -209,7 +228,7 @@ class Daemon:
         self._transcriber = StreamingTranscriber(
             output_path=md_path,
             model_name=cfg.transcription.realtime_model,
-            device=cfg.transcription.device,
+            device=cfg.transcription.realtime_device,
             compute_type=cfg.transcription.compute_type,
             language=language,
             beam_size=cfg.transcription.beam_size,
@@ -226,6 +245,7 @@ class Daemon:
         self._transcriber.start()
         self._last_voice_time = time.monotonic()
         self._state = State.RECORDING
+        self._capture_wanted.set()
         self._language = None
         self._initial_prompt = ""
         self._macro_names = []
@@ -302,7 +322,7 @@ class Daemon:
             trans = StreamingTranscriber(
                 output_path=tmp_path,
                 model_name=cfg.transcription.model,
-                device=cfg.transcription.device,
+                device=cfg.transcription.quality_device,
                 compute_type=cfg.transcription.compute_type,
                 language=language,
                 beam_size=cfg.transcription.beam_size,

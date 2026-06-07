@@ -124,7 +124,7 @@ class FolderWatcher:
             trans = StreamingTranscriber(
                 output_path=md_path,
                 model_name=self.config.transcription.model,
-                device=self.config.transcription.device,
+                device=self.config.transcription.quality_device,
                 compute_type=self.config.transcription.compute_type,
                 language=language,
                 beam_size=self.config.transcription.beam_size,

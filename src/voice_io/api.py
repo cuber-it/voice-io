@@ -192,7 +192,7 @@ def create_app(config: Config | None = None) -> FastAPI:
             trans = StreamingTranscriber(
                 output_path=tmp_path,
                 model_name=config.transcription.model,
-                device=config.transcription.device,
+                device=config.transcription.quality_device,
                 compute_type=config.transcription.compute_type,
                 language=language,
                 beam_size=config.transcription.beam_size,
@@ -364,7 +364,7 @@ def create_app(config: Config | None = None) -> FastAPI:
             trans = StreamingTranscriber(
                 output_path=tmp_path,
                 model_name=model_name,
-                device=config.transcription.device,
+                device=config.transcription.quality_device,
                 compute_type=config.transcription.compute_type,
                 language=language,
                 beam_size=config.transcription.beam_size,
@@ -574,8 +574,8 @@ def create_app(config: Config | None = None) -> FastAPI:
         nonlocal daemon_thread
         # preload both models
         def preload_both():
-            preload_model(config.transcription.realtime_model, config.transcription.device, config.transcription.compute_type)
-            preload_model(config.transcription.model, config.transcription.device, config.transcription.compute_type)
+            preload_model(config.transcription.realtime_model, config.transcription.realtime_device, config.transcription.compute_type)
+            preload_model(config.transcription.model, config.transcription.quality_device, config.transcription.compute_type)
         threading.Thread(target=preload_both, daemon=True).start()
         daemon_thread = threading.Thread(target=daemon.run, daemon=True)
         daemon_thread.start()

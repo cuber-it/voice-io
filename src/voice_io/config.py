@@ -42,11 +42,14 @@ class RecordingConfig:
 class TranscriptionConfig:
     model: str = "large-v3-turbo"
     realtime_model: str = "medium"
-    device: str = "cpu"
+    device: str = "auto"  # auto | cpu | cuda
     compute_type: str = "int8"
     language: str = "de"
     chunk_duration: int = 4
     beam_size: int = 5
+    # Resolved from `device` at load time (see gpu.resolve_devices):
+    realtime_device: str = "cpu"
+    quality_device: str = "cpu"
 
 
 @dataclass
@@ -80,12 +83,23 @@ def load_config(path: Path | None = None) -> Config:
                 break
 
     if config_path is None or not config_path.exists():
-        return Config()
+        cfg = Config()
+    else:
+        with config_path.open("rb") as fh:
+            data = tomllib.load(fh)
+        cfg = _parse(data)
 
-    with config_path.open("rb") as fh:
-        data = tomllib.load(fh)
+    _resolve_devices(cfg)
+    return cfg
 
-    return _parse(data)
+
+def _resolve_devices(cfg: Config) -> None:
+    """Fill realtime_device/quality_device from the configured device."""
+    from voice_io.gpu import resolve_devices
+
+    rt, q = resolve_devices(cfg.transcription.device)
+    cfg.transcription.realtime_device = rt
+    cfg.transcription.quality_device = q
 
 
 def _parse(data: dict) -> Config:
@@ -126,7 +140,7 @@ def _parse(data: dict) -> Config:
         transcription=TranscriptionConfig(
             model=transcription.get("model", "large-v3-turbo"),
             realtime_model=transcription.get("realtime_model", "medium"),
-            device=transcription.get("device", "cpu"),
+            device=transcription.get("device", "auto"),
             compute_type=transcription.get("compute_type", "int8"),
             language=transcription.get("language", "de"),
             chunk_duration=transcription.get("chunk_duration", 4),

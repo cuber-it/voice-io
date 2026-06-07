@@ -12,11 +12,13 @@ No cloud, no account, no subscription.
 Record your voice, get a clean transcript.
 
 - Dual-pass transcription: fast real-time preview + high-quality result after stop
+- Automatic GPU/CPU selection — uses the GPU when it fits, splits realtime/quality when VRAM is tight
 - Smart glossaries for technical terms and jargon
 - Dictation macros: trigger phrases → replacement text
 - Watch folder: drop an audio file, get a transcript
 - Wake-word activation and stop-phrase
 - Web interface with session management
+- Privacy-friendly: in GUI mode the mic is only opened while recording
 - Everything runs locally on your own hardware
 
 ---
@@ -77,6 +79,7 @@ device = "TONOR TM20"          # partial match, empty = system default
 [transcription]
 model = "large-v3-turbo"       # quality model (after recording)
 realtime_model = "medium"      # fast model (during recording)
+device = "auto"                # auto | cpu | cuda (auto picks GPU/CPU by VRAM)
 language = "de"                # de, en, fr, es, ...
 
 [wakeword]

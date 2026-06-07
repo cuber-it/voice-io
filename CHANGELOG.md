@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.1] — 2026-06-07
+
+### Added
+- Automatic device selection (`device = "auto"`): use the GPU when present;
+  when its VRAM is too small for both models, run realtime on GPU and quality
+  on CPU; no GPU falls back to CPU for both
+- Lazy microphone: in GUI-only mode the mic stays closed while idle and is
+  opened only while recording
+
+### Fixed
+- `pyproject.toml`: `dependencies` was nested under `[project.urls]`, which
+  broke editable installs (`pip install -e .`)
+
 ## [0.9.0] — 2026-04-17
 
 ### Added

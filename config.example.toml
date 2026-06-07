@@ -28,13 +28,18 @@ silence_timeout = 30
 silence_threshold = 0.01
 
 [transcription]
-# Model choices:
-#   distil-large-v3    fast enough for realtime on CPU, good quality
-#   large-v3           best quality, too slow for realtime on CPU
-#   large-v3-turbo     compromise
-#   medium             for testing
-model = "distil-large-v3"
-device = "cpu"
+# Quality model (runs in the background after you stop recording):
+#   large-v3-turbo     good quality, reasonable speed (recommended)
+#   large-v3           best quality, slowest
+#   distil-large-v3    smaller, fits a 2 GB GPU
+model = "large-v3-turbo"
+# Realtime model (runs live during recording — must be fast): medium / small / base
+realtime_model = "medium"
+# device: auto | cpu | cuda
+#   auto  = use GPU if present; if VRAM too small for BOTH models,
+#           realtime on GPU + quality on CPU; no GPU -> both on CPU.
+#   cpu / cuda force both stages onto that device.
+device = "auto"
 compute_type = "int8"
 language = "de"
 # Chunk length in seconds for streaming transcription

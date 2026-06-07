@@ -34,7 +34,7 @@ class TestDefaults:
     def test_default_transcription(self):
         config = load_config(Path("/nonexistent/path.toml"))
         assert config.transcription.model == "large-v3-turbo"
-        assert config.transcription.device == "cpu"
+        assert config.transcription.device == "auto"
         assert config.transcription.compute_type == "int8"
         assert config.transcription.language == "de"
         assert config.transcription.chunk_duration == 4
